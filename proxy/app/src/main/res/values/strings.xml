@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">httptest</string>
+    <string name="click">系统http请求</string>
+    <string name="okhttp">OKHttp请求</string>
+</resources>
