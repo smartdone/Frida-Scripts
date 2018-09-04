@@ -9,6 +9,7 @@
 1. `pip install frida`
 2. `pip install frida-tools`
 3. 安装加固过的apk到手机
-4. `frida -R -f {app包名} -l unpack.js` （用app包名替换`{app包名}`）
-5. 在`/data/data/{app包名}/files/{数字}.dex`（从内存中dump的dex会放到files目录下面的十六进制数字命名的dex文件中，emm.dex不是哈）
+4. `adb forward tcp:27042 tcp:27042`
+5. `frida -R -f {app包名} -l unpack.js` （用app包名替换`{app包名}`）
+6. 在`/data/data/{app包名}/files/{数字}.dex`（从内存中dump的dex会放到files目录下面的十六进制数字命名的dex文件中，emm.dex不是哈）
 
