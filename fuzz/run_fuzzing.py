@@ -2,43 +2,56 @@
 import os
 import subprocess
 import threading
-
-# WORK_DIR = 'work'
-
-# def checkOutput(s):
-#   if 'Segmentation fault' in s or 'error' in s.lower() or :
-#     return False
-#   else:
-#     return True
-
-# corpus_dir = os.path.join(WORK_DIR, 'corpus')
-# corpus_filenames = os.listdir(corpus_dir)
-
-# for f in corpus_filenames:
-#   testcase_path = os.path.join(corpus_dir, f)
-#   cmd = ['bin/asan/pdfium_test', testcase_path]
-#   process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-#                              stderr=subprocess.STDOUT)
-#   output = process.communicate()[0]
-#   if not checkOutput(output):
-#     print testcase_path
-#     print output
-#     print '-' * 80
+import shutil
 
 THREAD_NUM = 6
 
+vuldir = os.path.join("vul")
+segdir = os.path.join("seg")
+errdir = os.path.join("err")
+
+if not os.path.exists(vuldir) :
+  os.makedirs(vuldir)
+  vuldir = os.path.abspath(vuldir)
+else :
+  vuldir = os.path.abspath(os.path.join("vul"))
+
+if not os.path.exists(segdir) :
+  os.makedirs(segdir)
+  segdir = os.path.abspath(segdir)
+else :
+  segdir = os.path.abspath(os.path.join("seg"))
+
+if not os.path.exists(errdir) :
+  os.makedirs(errdir)
+  errdir = os.path.abspath(errdir)
+else :
+  errdir = os.path.abspath(os.path.join("err"))
+
 def writeout(s, filepath):
   if 'AddressSanitizer' in s:
-    pass
-  if 'Segmentation fault' in s:
-    pass
-  if 'error' in s.lower() :
-    pass
+    print "vul %s" %filepath
+    shutil.move(filepath, vuldir)
+  elif 'Segmentation fault' in s:
+    print "seg %s" %filepath
+    shutil.move(filepath, segdir)
+  elif 'error' in s.lower() :
+    print "err %s" %filepath
+    shutil.move(filepath, errdir)
 
 def fuzzthread(tnum, files):
-  # for file in files:
-  #   print tnum, file
-  print "hello"
+  for file in files:
+    print "thread %d use %s" %(tnum, file)
+    f = open(file, "r")
+    arg = f.read()
+    f.close()
+    cmd = ["/Users/ssd/develop/Frida-Scripts/fuzz/test", arg]
+    process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                           stderr=subprocess.STDOUT)
+    pid = process.pid
+    output = process.communicate()[0]
+    writeout(output, file)
+
 
 testfiles = os.listdir(os.path.join("fuzztest"))
 
@@ -64,12 +77,10 @@ if len(testfiles) % THREAD_NUM != 0 :
   for i in range(statrtindex, len(testfiles)) :
     testcase_path = os.path.abspath(os.path.join(folder, testfiles[i]))
     litg.append(testcase_path)
-    print testcase_path
   groups.append(litg)
 
 tid = 0
 for item in groups:
-  print item
   t = threading.Thread(target=fuzzthread, args=(tid, item))
   t.start()
   tid = tid + 1
